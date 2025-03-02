@@ -9,8 +9,8 @@
   <body>
     <h1>Tic Tac Toe game</h1>
     <div class="container">
-      <div class="game-board">
-        <div class="cell" data-index="0">X</div>
+      <div class="game-board" id="game-board">
+        <div class="cell" data-index="0"></div>
         <div class="cell" data-index="1"></div>
         <div class="cell" data-index="2"></div>
         <div class="cell" data-index="3"></div>
@@ -19,9 +19,12 @@
         <div class="cell" data-index="6"></div>
         <div class="cell" data-index="7"></div>
         <div class="cell" data-index="8"></div>
+        <h2 id="game-result"></h2>
       </div>
-      
+      <p id="player1"></p>
+      <p id="player2"></p>
     </div>
+    <button id="reset">New Game</button>
   </body>
   <script src="./app.js"></script>
 </html>
