@@ -7,6 +7,8 @@ const playerElTwo = document.getElementById(`player2`);
 const cells = document.querySelectorAll(".cell");
 const resetEl = document.getElementById("reset");
 const gameResultEl = document.getElementById("game-result");
+const form = document.getElementById(`form`);
+const gameBoardEL = document.getElementById(`game-board`);
 
 const displayGameResult = (result, playerName = "") => {
   // Select the parent element where the new element will be added
@@ -72,9 +74,9 @@ function GameBoard() {
 }
 
 // Factory function for managing the game flow
-function GameController() {
-  const player1 = MakePlayer("Player 1", "X");
-  const player2 = MakePlayer("Player 2", "O");
+function GameController(playerName1, playerName2) {
+  const player1 = MakePlayer(playerName1, "X");
+  const player2 = MakePlayer(playerName2, "O");
   const board = GameBoard();
 
   playerElOne.innerText = `Player: ${player1.name}  Symbol: ${player1.symbol}`;
@@ -115,6 +117,7 @@ function GameController() {
   const newGame = () => {
     board.resetBoard();
     currentPlayer = player1; // Reset to player 1
+    
     cells.forEach((element) => {
       element.style.display = "block";
     });
@@ -123,19 +126,31 @@ function GameController() {
 
   return { playTurn, newGame };
 }
+// hiddes the board game
+gameBoardEL.classList.add(`hidden`);
 
-// Start game
-let game = GameController();
-game.newGame();
+form.addEventListener(`submit`, function (event) {
+  event.preventDefault(); // Prevents page refresh
+  const playerXName = document.getElementById(`player1`).value;
+  const playerOName = document.getElementById(`player2`).value;
 
-// Add event listeners to each cell
-cells.forEach((cell) => {
-  cell.addEventListener("click", function () {
-    const index = this.getAttribute("data-index");
-    game.playTurn(index);
-  });
-});
+  console.log(playerXName);
 
-resetEl.addEventListener("click", () => {
+  gameBoardEL.classList.remove(`hidden`);
+  form.classList.add(`hidden`);
+  // Start game
+  let game = GameController(playerXName, playerOName);
   game.newGame();
+
+  // Add event listeners to each cell
+  cells.forEach((cell) => {
+    cell.addEventListener("click", function () {
+      const index = this.getAttribute("data-index");
+      game.playTurn(index);
+    });
+  });
+
+  resetEl.addEventListener("click", () => {
+    game.newGame();
+  });
 });
