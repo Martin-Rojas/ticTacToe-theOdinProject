@@ -2,10 +2,11 @@ function MakePlayer(name, symbol) {
   return { name, symbol };
 }
 
-const playerElOne = document.getElementById(`player1`);
-const playerElTwo = document.getElementById(`player2`);
+const playerElOne = document.getElementById(`player1-name`);
+const playerElTwo = document.getElementById(`player2-name`);
 const cells = document.querySelectorAll(".cell");
 const resetEl = document.getElementById("reset");
+const newGameBtn = document.getElementById(`newGame`);
 const gameResultEl = document.getElementById("game-result");
 const form = document.getElementById(`form`);
 const gameBoardEL = document.getElementById(`game-board`);
@@ -79,9 +80,6 @@ function GameController(playerName1, playerName2) {
   const player2 = MakePlayer(playerName2, "O");
   const board = GameBoard();
 
-  playerElOne.innerText = `Player: ${player1.name}  Symbol: ${player1.symbol}`;
-  playerElTwo.innerText = `Player: ${player2.name}  Symbol: ${player2.symbol}`;
-
   let currentPlayer = player1;
 
   // Function to play a turn
@@ -114,21 +112,24 @@ function GameController(playerName1, playerName2) {
   };
 
   // Function to start a new game
-  const newGame = () => {
+  const resetGame = () => {
     board.resetBoard();
     currentPlayer = player1; // Reset to player 1
-    
+
     cells.forEach((element) => {
       element.style.display = "block";
     });
     gameResultEl.innerText = ``;
   };
 
-  return { playTurn, newGame };
+  
+
+  return { playTurn, resetGame, player1, player2 };
 }
 // hiddes the board game
 gameBoardEL.classList.add(`hidden`);
 
+// Get the values from the form player
 form.addEventListener(`submit`, function (event) {
   event.preventDefault(); // Prevents page refresh
   const playerXName = document.getElementById(`player1`).value;
@@ -137,11 +138,14 @@ form.addEventListener(`submit`, function (event) {
   console.log(playerXName);
 
   gameBoardEL.classList.remove(`hidden`);
+
   form.classList.add(`hidden`);
   // Start game
   let game = GameController(playerXName, playerOName);
-  game.newGame();
 
+  game.resetGame();
+
+  console.log(playerElOne);
   // Add event listeners to each cell
   cells.forEach((cell) => {
     cell.addEventListener("click", function () {
@@ -150,7 +154,12 @@ form.addEventListener(`submit`, function (event) {
     });
   });
 
+  playerElOne.innerText = `Player: ${playerXName}  Symbol: X`;
+  playerElTwo.innerText = `Player: ${playerOName}  Symbol: O`;
+
+  //console.log(playerElOne);
+
   resetEl.addEventListener("click", () => {
-    game.newGame();
+    game.resetGame();
   });
 });
