@@ -2,38 +2,31 @@ function MakePlayer(name, symbol) {
   return { name, symbol };
 }
 
-const playerElOne = document.getElementById(`player1-name`);
-const playerElTwo = document.getElementById(`player2-name`);
-const cells = document.querySelectorAll(".cell");
+const playerElOne = document.getElementById("player1-name");
+const playerElTwo = document.getElementById("player2-name");
+let cells = document.querySelectorAll(".cell");
 const resetEl = document.getElementById("reset");
-const newGameBtn = document.getElementById(`newGame`);
+const newGameBtn = document.getElementById("newGame");
 const gameResultEl = document.getElementById("game-result");
-const form = document.getElementById(`form`);
-const gameBoardEL = document.getElementById(`game-board`);
+const form = document.getElementById("form");
+const gameBoardEL = document.getElementById("game-board");
 
 const displayGameResult = (result, playerName = "") => {
-  // Select the parent element where the new element will be added
-  const gameBoardEle = document.getElementById(`game-board`);
-  // Create a new paragraph element
-  const gameResultEl = document.createElement(`h2`);
-  // Add text content to the paragraph
-  if (result === `tie`) {
-    gameResultEl.innerHTML = `${result}`;
+  if (result === "tie") {
+    gameResultEl.innerText = `It's a tie!`;
   } else {
-    gameResultEl.innerHTML = `${playerName} ${result}!`;
+    gameResultEl.innerText = `${playerName} wins!`;
   }
-
-  // Append the paragraph to the parent element
-  gameBoardEle.append(gameResultEl);
 };
 
-// gameboard
 function GameBoard() {
   let board = ["", "", "", "", "", "", "", "", ""];
 
-  // Function to reset the board
   const resetBoard = () => {
-    cells.forEach((cell) => (cell.innerText = "")); // Clear UI
+    cells.forEach((cell) => {
+      cell.innerText = "";
+      cell.style.pointerEvents = "auto";
+    });
     board = ["", "", "", "", "", "", "", "", ""];
   };
 
@@ -46,35 +39,63 @@ function GameBoard() {
     }
   };
 
-  // Function to get the current state of the board
   const getBoard = () => board;
 
-  // Function to check for a winner
   const checkWinner = () => {
     const winningCombinations = [
       [0, 1, 2],
       [3, 4, 5],
-      [6, 7, 8], // Rows
+      [6, 7, 8],
       [0, 3, 6],
       [1, 4, 7],
-      [2, 5, 8], // Columns
+      [2, 5, 8],
       [0, 4, 8],
-      [2, 4, 6], // Diagonals
+      [2, 4, 6],
     ];
     for (const combination of winningCombinations) {
       const [a, b, c] = combination;
       if (board[a] && board[a] === board[b] && board[a] === board[c]) {
-        return board[a]; // Return the symbol of the winner
+        return board[a];
       }
     }
 
-    return board.includes("") ? null : "tie"; // Return "tie" if board is full
+    return board.includes("") ? null : "tie";
   };
 
   return { resetBoard, updateBoard, getBoard, checkWinner };
 }
 
-// Factory function for managing the game flow
+let game = null; // Global reference
+
+gameBoardEL.classList.add("hidden");
+
+function startGame(playerXName, playerOName) {
+  gameBoardEL.classList.remove("hidden");
+  form.classList.add("hidden");
+
+  document.querySelectorAll(".cell").forEach((cell) => {
+    const newCell = cell.cloneNode(true);
+    cell.parentNode.replaceChild(newCell, cell);
+  });
+
+  cells = document.querySelectorAll(".cell");
+
+  game = GameController(playerXName, playerOName);
+  game.resetGame();
+
+  cells.forEach((cell) => {
+    cell.addEventListener("click", function () {
+      const index = parseInt(this.getAttribute("data-index"), 10);
+      game.playTurn(index);
+    });
+  });
+
+  playerElOne.innerText = `Player: ${playerXName}  Symbol: X`;
+  playerElTwo.innerText = `Player: ${playerOName}  Symbol: O`;
+  playerElOne.style.display = "block";
+  playerElTwo.style.display = "block";
+}
+
 function GameController(playerName1, playerName2) {
   const player1 = MakePlayer(playerName1, "X");
   const player2 = MakePlayer(playerName2, "O");
@@ -82,28 +103,18 @@ function GameController(playerName1, playerName2) {
 
   let currentPlayer = player1;
 
-  // Function to play a turn
   const playTurn = (index) => {
     if (board.updateBoard(index, currentPlayer.symbol)) {
-      cells[index].innerText = currentPlayer.symbol; // Update UI
+      cells[index].innerText = currentPlayer.symbol;
+      cells[index].style.pointerEvents = "none";
+
       const winner = board.checkWinner();
       if (winner) {
-        if (winner === "tie") {
-          cells.forEach((element) => {
-            element.style.display = "none";
-          });
-
-          gameResultEl.innerText = `it's a tie!`;
-        } else {
-          cells.forEach((element) => {
-            element.style.display = "none";
-          });
-          gameResultEl.innerText = `${currentPlayer.name} wins!!`;
-          board.resetBoard();
-        }
-        board.resetBoard(); // Reset the board after a game
+        cells.forEach((element) => {
+          element.style.pointerEvents = "none";
+        });
+        displayGameResult(winner, currentPlayer.name);
       } else {
-        // Switch to the other player
         currentPlayer = currentPlayer === player1 ? player2 : player1;
       }
     } else {
@@ -111,55 +122,35 @@ function GameController(playerName1, playerName2) {
     }
   };
 
-  // Function to start a new game
   const resetGame = () => {
     board.resetBoard();
-    currentPlayer = player1; // Reset to player 1
-
-    cells.forEach((element) => {
-      element.style.display = "block";
-    });
-    gameResultEl.innerText = ``;
+    currentPlayer = player1;
+    gameResultEl.innerText = "";
   };
 
-  
+  const newGame = () => {
+    gameBoardEL.classList.add("hidden");
+    playerElOne.style.display = "none";
+    playerElTwo.style.display = "none";
+    form.classList.remove("hidden");
+    document.getElementById("player1").value = "";
+    document.getElementById("player2").value = "";
+  };
 
-  return { playTurn, resetGame, player1, player2 };
+  return { playTurn, resetGame, newGame };
 }
-// hiddes the board game
-gameBoardEL.classList.add(`hidden`);
 
-// Get the values from the form player
-form.addEventListener(`submit`, function (event) {
-  event.preventDefault(); // Prevents page refresh
-  const playerXName = document.getElementById(`player1`).value;
-  const playerOName = document.getElementById(`player2`).value;
+form.addEventListener("submit", function (event) {
+  event.preventDefault();
+  const playerXName = document.getElementById("player1").value;
+  const playerOName = document.getElementById("player2").value;
+  startGame(playerXName, playerOName);
+});
 
-  console.log(playerXName);
+resetEl.addEventListener("click", () => {
+  if (game) game.resetGame();
+});
 
-  gameBoardEL.classList.remove(`hidden`);
-
-  form.classList.add(`hidden`);
-  // Start game
-  let game = GameController(playerXName, playerOName);
-
-  game.resetGame();
-
-  console.log(playerElOne);
-  // Add event listeners to each cell
-  cells.forEach((cell) => {
-    cell.addEventListener("click", function () {
-      const index = this.getAttribute("data-index");
-      game.playTurn(index);
-    });
-  });
-
-  playerElOne.innerText = `Player: ${playerXName}  Symbol: X`;
-  playerElTwo.innerText = `Player: ${playerOName}  Symbol: O`;
-
-  //console.log(playerElOne);
-
-  resetEl.addEventListener("click", () => {
-    game.resetGame();
-  });
+newGameBtn.addEventListener("click", () => {
+  if (game) game.newGame();
 });
